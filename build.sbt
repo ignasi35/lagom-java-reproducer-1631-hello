@@ -1,3 +1,5 @@
+import sbt.Keys.resolvers
+
 organization in ThisBuild := "com.example"
 version in ThisBuild := "1.0-SNAPSHOT"
 
@@ -17,14 +19,22 @@ lazy val `hello-api` = (project in file("hello-api"))
   )
 
 lazy val `hello-impl` = (project in file("hello-impl"))
-  .enablePlugins(LagomJava)
+  .enablePlugins(LagomJava, Cinnamon)
   .settings(common: _*)
   .settings(
     libraryDependencies ++= Seq(
       lagomLogback,
       lagomJavadslCluster,
-      lombok
-    )
+      lombok,
+      "com.lightbend.akka" %% "akka-split-brain-resolver" % "1.1.3"
+    ),
+    credentials += Credentials(Path.userHome / ".lightbend" / "commercial.credentials"),
+    resolvers += "com-mvn" at "https://repo.lightbend.com/commercial-releases/",
+    resolvers += Resolver.url("com-ivy",
+      url("https://repo.lightbend.com/commercial-releases/"))(Resolver.ivyStylePatterns),
+    cinnamon in run := true,
+    cinnamonLogLevel := "INFO"
+
   )
   .settings(lagomForkedTestSettings: _*)
   .dependsOn(`hello-api`)
